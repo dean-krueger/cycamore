@@ -7,6 +7,9 @@
 #include "cyclus.h"
 #include "cycamore_version.h"
 
+// Code Injection:
+#include "toolkit/facility_cost.h"
+
 #pragma cyclus exec from cyclus.system import CY_LARGE_DOUBLE, CY_LARGE_INT, CY_NEAR_ZERO
 
 namespace cycamore {
@@ -81,6 +84,10 @@ class Source : public cyclus::Facility,
     cyclus::Material::Ptr> >& responses);
 
  private:
+ // Code Injection:
+ #include "toolkit/facility_cost.cycpp.h"
+
+ // Regular Members:
   #pragma cyclus var { \
     "tooltip": "source output commodity", \
     "doc": "Output commodity on which the source offers material.", \

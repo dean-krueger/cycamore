@@ -56,6 +56,11 @@ std::string Source::str() {
 void Source::EnterNotify() {
   cyclus::Facility::EnterNotify();
   RecordPosition();
+  InitializeCosts();
+
+  // Example of how to access financial_data_
+  std::cout << "Capital Cost: " << this->GetEconParameter("capital_cost") << std::endl;
+  std::cout << "O&M Cost: " << this->GetEconParameter("operations_and_management")<<std::endl;
 }
 
 void Source::Build(cyclus::Agent* parent) {
