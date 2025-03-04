@@ -7,6 +7,7 @@
 
 #include "cyclus.h"
 #include "cycamore_version.h"
+#include "toolkit/institution_cost.h"
 
 namespace cycamore {
 
@@ -56,6 +57,7 @@ class DeployInst :
                                 producer);
 
   private:
+  #include "toolkit/institution_cost.cycpp.h"
   /// register a child
   void Register_(cyclus::Agent* agent);
 

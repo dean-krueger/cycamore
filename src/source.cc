@@ -61,6 +61,7 @@ void Source::EnterNotify() {
   // Example of how to access financial_data_
   std::cout << "Capital Cost: " << this->GetEconParameter("capital_cost") << std::endl;
   std::cout << "O&M Cost: " << this->GetEconParameter("operations_and_management")<<std::endl;
+  std::cout << "Institution MARR: " << this->parent()->GetEconParameter("minimum_acceptable_return_rate") << std::endl;
 }
 
 void Source::Build(cyclus::Agent* parent) {

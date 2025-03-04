@@ -66,6 +66,7 @@ void DeployInst::EnterNotify() {
     throw cyclus::ValueError(ss.str());
   }
   RecordPosition();
+  InitializeCosts();
 }
 
 void DeployInst::BuildNotify(Agent* a) {
