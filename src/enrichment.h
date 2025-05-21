@@ -174,6 +174,8 @@ class Enrichment
   virtual std::string str();
   // ---
 
+  virtual void EnterNotify();
+  
   // --- Facility Members ---
   /// perform module-specific tasks when entering the simulation
   virtual void Build(cyclus::Agent* parent);
@@ -249,6 +251,9 @@ class Enrichment
   }
 
  private:
+  // Code Injection:
+  #include "toolkit/facility_cost.cycpp.h"
+  
   ///   @brief adds a material into the natural uranium inventory
   ///   @throws if the material is not the same composition as the feed_recipe
   void AddMat_(cyclus::Material::Ptr mat);

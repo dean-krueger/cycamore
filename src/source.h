@@ -7,9 +7,6 @@
 #include "cyclus.h"
 #include "cycamore_version.h"
 
-// Code Injection:
-#include "toolkit/facility_cost.h"
-
 #pragma cyclus exec from cyclus.system import CY_LARGE_DOUBLE, CY_LARGE_INT, CY_NEAR_ZERO
 
 namespace cycamore {

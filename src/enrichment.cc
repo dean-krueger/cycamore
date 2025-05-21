@@ -44,6 +44,11 @@ std::string Enrichment::str() {
   return ss.str();
 }
 
+void Enrichment::EnterNotify() {
+  cyclus::Facility::EnterNotify();
+  InitializeCosts();
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Enrichment::Build(cyclus::Agent* parent) {
   Facility::Build(parent);
@@ -159,9 +164,26 @@ void Enrichment::AcceptMatlTrades(
   // http://stackoverflow.com/questions/5181183/boostshared-ptr-and-inheritance
   std::vector<std::pair<cyclus::Trade<Material>,
                         Material::Ptr> >::const_iterator it;
+  
+  // Test Code
+  double prev_weighted_cost = 0;
+  double prev_qty = 0;
+
+  // Real code
   for (it = responses.begin(); it != responses.end(); ++it) {
     AddMat_(it->second);
-  }
+
+    // More test code
+    prev_weighted_cost += 1/it->first.bid->preference() * it->first.amt;
+    prev_qty += it->first.amt;
+  } // This stays
+  // More test code
+
+  // I want this to be some sort of running average on how much the inputs
+  // to this facility costs... 
+  total_qty_purchased += prev_qty;
+  avg_per_unit_cost = (avg_per_unit_cost * (total_qty_purchased - prev_qty) + prev_weighted_cost) / total_qty_purchased;
+  std::cout << "Average Cost: " << avg_per_unit_cost << std::endl;
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -219,7 +241,17 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
           ((request_enrich < max_enrich) ||
            (cyclus::AlmostEq(request_enrich, max_enrich)))) {
         Material::Ptr offer = Offer_(req->target());
-        commod_port->AddBid(req, offer, this);
+        
+        // Need to double check this/think about it more...
+        cyclus::toolkit::Assays assays(FeedAssay(), cyclus::toolkit::UraniumAssayMass(mat), tails_assay);
+        double natu_req = cyclus::toolkit::FeedQty(mat->quantity(), assays);
+
+        // swu_capacity here is wrong, but I'm not sure what's right...
+
+        // Enrichment has a SWU capacity --> sells kg of U, but that cost depends
+        // on how many SWUs it took to make it (???)
+        double pref = 1.0 / this->GetCost(swu_capacity, natu_req * avg_per_unit_cost);
+        commod_port->AddBid(req, offer, this, false, pref);
       }
     }
 

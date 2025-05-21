@@ -59,9 +59,7 @@ void Source::EnterNotify() {
   InitializeCosts();
 
   // Example of how to access financial_data_
-  std::cout << "Capital Cost: " << this->GetEconParameter("capital_cost") << std::endl;
-  std::cout << "O&M Cost: " << this->GetEconParameter("operations_and_management")<<std::endl;
-  std::cout << "Institution MARR: " << this->parent()->GetEconParameter("minimum_acceptable_return_rate") << std::endl;
+  std::cout << "Total Cost: " << this->GetCost(throughput, 0) << std::endl; 
 }
 
 void Source::Build(cyclus::Agent* parent) {
@@ -128,7 +126,11 @@ std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
       m = outrecipe.empty() ? \
           Material::CreateUntracked(*bit, target->comp()) : \
           Material::CreateUntracked(*bit, context()->GetRecipe(outrecipe));
-      port->AddBid(req, m, this);
+          
+      // Old Code:
+      //port->AddBid(req, m, this);
+      double pref = 1.0 / this->GetCost(throughput, 0);
+      port->AddBid(req, m, this, false, pref);
     }
   }
 
