@@ -57,9 +57,6 @@ void Source::EnterNotify() {
   cyclus::Facility::EnterNotify();
   RecordPosition();
   InitializeCosts();
-
-  // Example of how to access financial_data_
-  std::cout << "Total Cost: " << this->GetCost(throughput, 0) << std::endl; 
 }
 
 void Source::Build(cyclus::Agent* parent) {
@@ -129,7 +126,7 @@ std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
           
       // Old Code:
       //port->AddBid(req, m, this);
-      double pref = 1.0 / this->GetCost(throughput, 0);
+      double pref = 1.0 / (this->GetCost(throughput, target->quantity(), 0)/target->quantity());
       port->AddBid(req, m, this, false, pref);
     }
   }

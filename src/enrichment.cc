@@ -245,12 +245,12 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
         // Need to double check this/think about it more...
         cyclus::toolkit::Assays assays(FeedAssay(), cyclus::toolkit::UraniumAssayMass(mat), tails_assay);
         double natu_req = cyclus::toolkit::FeedQty(mat->quantity(), assays);
-
+        double swu_req = cyclus::toolkit::SwuRequired(mat->quantity(), assays);
         // swu_capacity here is wrong, but I'm not sure what's right...
 
         // Enrichment has a SWU capacity --> sells kg of U, but that cost depends
         // on how many SWUs it took to make it (???)
-        double pref = 1.0 / this->GetCost(swu_capacity, natu_req * avg_per_unit_cost);
+        double pref = 1.0 / (this->GetCost(swu_capacity, swu_req, natu_req * avg_per_unit_cost)/mat->quantity());
         commod_port->AddBid(req, offer, this, false, pref);
       }
     }
