@@ -32,7 +32,7 @@ class Conversion
     "doc": \
     " A conversion facility that accepts materials and products with a fixed\n"\
     " throughput (per time step) and converts them into its outcommod. More\n"\
-    " complex behavior is planned for the future."
+    " complex behavior is planned for the future." \
     }
 
   #pragma cyclus decl
@@ -47,7 +47,7 @@ class Conversion
 
   /// determines the amount to request
   inline double SpaceAvailable() const {
-    return std::min(capacity, std::max(0.0, inventory.space()));
+    return std::min(throughput, std::max(0.0, inventory.space()));
   }
 
   /// @brief Conversion Facilities request Materials of their given commodity.
@@ -68,13 +68,27 @@ class Conversion
       const std::vector< std::pair<cyclus::Trade<cyclus::Material>,
       cyclus::Material::Ptr> >& responses);
 
+  /// @brief SinkFacilities update request amount using random behavior
+  virtual void SetRequestAmt();    
+
  private:
+  // Code Injection:
+  #include "toolkit/facility_cost.cycpp.h"
+  double requestAmt;
   /// all facilities must have at least one input commodity
   #pragma cyclus var {"tooltip": "input commodities", \
                       "doc": "commodities that the conversion facility accepts", \
                       "uilabel": "List of Input Commodities", \
                       "uitype": ["oneormore", "incommodity"]}
   std::vector<std::string> in_commods;
+
+    #pragma cyclus var {"default": [],\
+                      "doc":"preferences for each of the given commodities, in the same order."\
+                      "Defauts to 1 if unspecified",\
+                      "uilabel":"In Commody Preferences", \
+                      "range": [None, [CY_NEAR_ZERO, CY_LARGE_DOUBLE]], \
+                      "uitype":["oneormore", "range"]}
+  std::vector<double> in_commod_prefs;
 
    #pragma cyclus var {"default": "", \
                       "tooltip": "requested composition", \
@@ -103,15 +117,6 @@ class Conversion
     "uitype": "outrecipe", \
   }
   std::string outrecipe;
-  
-  /// max inventory size
-  #pragma cyclus var {"default": CY_LARGE_DOUBLE, \
-                      "tooltip": "conversion maximum inventory size", \
-                      "uilabel": "Maximum Inventory", \
-                      "uitype": "range", \
-                      "range": [0.0, CY_LARGE_DOUBLE], \
-                      "doc": "total maximum inventory size of conversion facility"}
-  double max_inv_size;
 
   /// throughput per timestep
   #pragma cyclus var {"default": CY_LARGE_DOUBLE, \
@@ -124,8 +129,8 @@ class Conversion
   double throughput;
 
   /// this facility holds material in storage.
-  #pragma cyclus var {'capacity': 'max_inv_size'}
-  cyclus::toolkit::ResBuf<cyclus::Resource> inventory;
+  #pragma cyclus var {'capacity': 'throughput'}
+  cyclus::toolkit::ResBuf<cyclus::Material> inventory;
 
   #pragma cyclus var { \
     "default": 0.0, \
@@ -142,6 +147,7 @@ class Conversion
            "be expressed in degrees as a double." \
   }
   double longitude;
+
 
   cyclus::toolkit::Position coordinates;
 

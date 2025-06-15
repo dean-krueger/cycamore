@@ -46,7 +46,7 @@ std::string Enrichment::str() {
 
 void Enrichment::EnterNotify() {
   cyclus::Facility::EnterNotify();
-  InitializeCosts();
+  InitEconParameters();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

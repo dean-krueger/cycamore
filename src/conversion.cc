@@ -11,11 +11,9 @@ namespace cycamore {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Conversion::Conversion(cyclus::Context* ctx)
     : cyclus::Facility(ctx),
-      capacity(std::numeric_limits<double>::max()),
       latitude(0.0),
       longitude(0.0),
-      coordinates(latitude, longitude) {
-  SetMaxInventorySize(std::numeric_limits<double>::max());}
+      coordinates(latitude, longitude) {}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Conversion::~Conversion() {}
@@ -34,6 +32,7 @@ Conversion::~Conversion() {}
 void Conversion::EnterNotify() {
   cyclus::Facility::EnterNotify();
   RecordPosition();
+  InitEconParameters();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -58,16 +57,48 @@ std::string Conversion::str() {
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Conversion::Tick() {
+  //Test Code
+  std::cout << "Tick" << std::endl;
 
+  using std::string;
+  using std::vector;
+  LOG(cyclus::LEV_INFO3, "ConFac") << "Conversion " << this->id() << " is ticking {";
+
+  SetRequestAmt();
+
+  // inform the simulation about what the sink facility will be requesting
+  if (requestAmt > cyclus::eps()) {
+    LOG(cyclus::LEV_INFO4, "ConFac") << "Conversion " << this->id()
+                                     << " has request amount " << requestAmt
+                                     << " kg of " << in_commods[0] << ".";
+    for (vector<string>::iterator commod = in_commods.begin();
+         commod != in_commods.end();
+         commod++) {
+      LOG(cyclus::LEV_INFO4, "ConFac") << "Conversion " << this->id() 
+                                       << " will request " << requestAmt
+                                       << " kg of " << *commod << ".";
+      cyclus::toolkit::RecordTimeSeries<double>("demand"+*commod, this,
+                                            requestAmt);
+    }
+  }
+  LOG(cyclus::LEV_INFO3, "ConFac") << "}";
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Conversion::Tock() {
-  
+  std::cout<<"Tock"<<std::endl;
+
+  LOG(cyclus::LEV_INFO3, "ConFac") << prototype() << " is tocking {";
+
+  LOG(cyclus::LEV_INFO4, "ConFac") << "Conversion " << this->id()
+                                   << " is holding " << inventory.quantity()
+                                   << " units of material at the close of timestep "
+                                   << context()->time() << ".";
+  LOG(cyclus::LEV_INFO3, "ConFac") << "}";
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Sink::SetRequestAmt() {
+void Conversion::SetRequestAmt() {
   double amt = SpaceAvailable();
   if (amt < cyclus::eps()) {
     requestAmt = 0;
@@ -80,6 +111,7 @@ void Sink::SetRequestAmt() {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::set<cyclus::RequestPortfolio<cyclus::Material>::Ptr>
 Conversion::GetMatlRequests() {
+  std::cout<< "GetMatlRequests" << std::endl;
   using cyclus::Material;
   using cyclus::RequestPortfolio;
   using cyclus::Request;
@@ -105,8 +137,8 @@ Conversion::GetMatlRequests() {
     std::vector<Request<Material>*> mutuals;
     for (int i = 0; i < in_commods.size(); i++) {
       mutuals.push_back(port->AddRequest(mat, this, in_commods[i], in_commod_prefs[i]));
-
     }
+
     port->AddMutualReqs(mutuals);
     ports.insert(port);
   }  // if amt > eps
@@ -114,8 +146,9 @@ Conversion::GetMatlRequests() {
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
+std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Conversion::GetMatlBids(
     cyclus::CommodMap<cyclus::Material>::type& commod_requests) {
+      std::cout<<"GetMatlBids"<<std::endl;
   using cyclus::BidPortfolio;
   using cyclus::CapacityConstraint;
   using cyclus::Material;
@@ -124,6 +157,12 @@ std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
   using cyclus::TransportUnit;
 
   double max_qty = std::min(throughput, inventory.quantity());
+  cyclus::toolkit::RecordTimeSeries<double>("supply"+outcommod, this,
+                                            max_qty);
+  LOG(cyclus::LEV_INFO3, "ConFac") << prototype() << " is bidding up to "
+                                   << max_qty << " kg of " << outcommod;
+  LOG(cyclus::LEV_INFO5, "ConFac") << "stats: " << str();
+
 
   std::set<BidPortfolio<Material>::Ptr> ports;
   if (max_qty < cyclus::eps()) {
@@ -160,7 +199,7 @@ std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
       // Old Code:
       //port->AddBid(req, m, this);
       // Change to add cost passing on
-      double pref = 1.0 / (this->GetCost(throughput, target->quantity(), 0)/target->quantity());
+      double pref = 1.0 / (this->GetCost(throughput, target->quantity(), target->quantity() * avg_per_unit_cost)/target->quantity());
       port->AddBid(req, m, this, false, pref);
     }
   }
@@ -171,19 +210,16 @@ std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr> Source::GetMatlBids(
   return ports;
 }
 
-  CapacityConstraint<Material> cc(max_qty);
-  port->AddConstraint(cc);
-  ports.insert(port);
-  return ports;
-}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-void Source::GetMatlTrades(
+void Conversion::GetMatlTrades(
     const std::vector<cyclus::Trade<cyclus::Material> >& trades,
     std::vector<std::pair<cyclus::Trade<cyclus::Material>,
                           cyclus::Material::Ptr> >& responses) {
   using cyclus::Material;
   using cyclus::Trade;
+
+  std::cout<<"GetMatlTrades"<<std::endl;
 
   // Some of the packaging stuff was hard-coded for simplicity for now.
   int shippable_trades = context()->GetTransportUnit("unrestricted")
@@ -221,7 +257,7 @@ void Source::GetMatlTrades(
       }
 
       responses.push_back(std::make_pair(*it, response));
-      LOG(cyclus::LEV_INFO5, "Source") << prototype() << " sent an order"
+      LOG(cyclus::LEV_INFO5, "ConFac") << prototype() << " sent an order"
                                       << " for " << response->quantity() << " of " << outcommod;
     }
   }
@@ -231,14 +267,22 @@ void Source::GetMatlTrades(
 void Conversion::AcceptMatlTrades(
     const std::vector< std::pair<cyclus::Trade<cyclus::Material>,
                                  cyclus::Material::Ptr> >& responses) {
+
+  std::cout<<"AcceptMatlTrades"<<std::endl;
   std::vector< std::pair<cyclus::Trade<cyclus::Material>,
                          cyclus::Material::Ptr> >::const_iterator it;
+
+  double tot_weighted_cost = 0.0;
+  double tot_qty = 0.0;
   for (it = responses.begin(); it != responses.end(); ++it) {
     inventory.Push(it->second);
+    tot_weighted_cost += 1.0/it->first.bid->preference() * it->first.amt;
+    tot_qty += it->first.amt;
   }
+  avg_per_unit_cost = tot_weighted_cost/tot_qty;
 }
 
-void Sink::RecordPosition() {
+void Conversion::RecordPosition() {
   std::string specification = this->spec();
   context()
       ->NewDatum("AgentPosition")

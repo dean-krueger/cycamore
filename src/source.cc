@@ -56,7 +56,7 @@ std::string Source::str() {
 void Source::EnterNotify() {
   cyclus::Facility::EnterNotify();
   RecordPosition();
-  InitializeCosts();
+  InitEconParameters();
 }
 
 void Source::Build(cyclus::Agent* parent) {

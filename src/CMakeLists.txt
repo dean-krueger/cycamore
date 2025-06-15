@@ -12,6 +12,8 @@ USE_CYCLUS("cycamore" "mixer")
 
 USE_CYCLUS("cycamore" "enrichment")
 
+USE_CYCLUS("cycamore" "conversion")
+
 USE_CYCLUS("cycamore" "separations")
 
 USE_CYCLUS("cycamore" "sink")
