@@ -554,8 +554,6 @@ class Storage
   cyclus::IntDistribution::Ptr dormant_dist_ = NULL;
   cyclus::DoubleDistribution::Ptr size_dist_ = NULL;
 
-  cyclus::toolkit::Position coordinates;
-
   friend class StorageTest;
 
   // Adds required header to add geographic coordinates to the archetype

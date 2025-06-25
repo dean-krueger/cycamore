@@ -12,14 +12,11 @@ namespace cycamore {
 Sink::Sink(cyclus::Context* ctx)
     : cyclus::Facility(ctx),
       capacity(std::numeric_limits<double>::max()),
-      latitude(0.0),
-      longitude(0.0),
-      coordinates(0, 0)
       keep_packaging(true) {
   SetMaxInventorySize(std::numeric_limits<double>::max());}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-Sink::~Sink() {}s
+Sink::~Sink() {}
 
 #pragma cyclus def schema cycamore::Sink
 
@@ -43,8 +40,8 @@ Sink::~Sink() {}s
 void Sink::EnterNotify() {
   cyclus::Facility::EnterNotify();
   
-  coordinates = cyclus::toolkit::Position(latitude, longitude);
-  coordinates.RecordPosition(this);
+  InitializePosition(this);
+  
   LOG(cyclus::LEV_INFO4, "SnkFac") << " using random behavior " << random_size_type;
 
   inventory.keep_packaging(keep_packaging);
