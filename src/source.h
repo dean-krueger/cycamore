@@ -71,8 +71,6 @@ class Source
       GetMatlBids(cyclus::CommodMap<cyclus::Material>::type&
                   commod_requests);
 
-  virtual void EnterNotify();
-
   /// --- Facility Members ---
   /// perform module-specific tasks when entering the simulation
   virtual void Build(cyclus::Agent* parent);

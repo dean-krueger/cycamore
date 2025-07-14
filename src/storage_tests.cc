@@ -775,7 +775,7 @@ TEST_F(StorageTest, IncorrectBuyPolSetupMinMax) {
   EXPECT_THROW(sim.Run(), cyclus::ValueError);
 }
 
-TEST_F(StorageTest, PositionInitialize){
+TEST_F(StorageTest, DefaultPositionInitialize){
   // Verify Storage behavior
 
   std::string config =

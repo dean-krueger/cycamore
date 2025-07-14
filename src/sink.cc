@@ -40,8 +40,6 @@ Sink::~Sink() {}
 void Sink::EnterNotify() {
   cyclus::Facility::EnterNotify();
   
-  InitializePosition(this);
-  
   LOG(cyclus::LEV_INFO4, "SnkFac") << " using random behavior " << random_size_type;
 
   inventory.keep_packaging(keep_packaging);
@@ -73,6 +71,9 @@ void Sink::EnterNotify() {
                                      << random_frequency_type
                                      << " for determining request frequency.";
   }
+
+  InitializePosition();
+  
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
