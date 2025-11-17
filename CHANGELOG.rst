@@ -7,6 +7,7 @@ Since last release
 
 **Added:**
 * Added TariffRegion Region (#661)
+* Added tests for Conversion Facility (#658)
 * Added Conversion Facility (#657)
 * Replaced manual matl_buy/sell_policy code in storage with code injection (#639)
 * Added package parameter to storage (#603, #612, #616)
@@ -31,6 +32,7 @@ Since last release
 * When trades fail in Source due to packaging, send empty material instead of seg faulting (#629)
 * Logging of resource moves between ResBufs in Storage is INFO4 not INFO1 (#625)
 * Support Boost>=1.86.0 (#637)
+* Update conributing guide to match current practice (#662)
 
 **Removed:**
 
