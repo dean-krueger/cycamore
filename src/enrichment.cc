@@ -111,17 +111,18 @@ bool SortBids(cyclus::Bid<Material>* i,
 // Sort offers of input material to have higher preference for more
 //  U-235 content
 void Enrichment::AdjustMatlPrefs(
-    cyclus::PrefMap<Material>::type& prefs) {
+    cyclus::MCMap<Material>::type& mc_prefs,
+    cyclus::MUMap<Material>::type& mu_prefs) {
   using cyclus::Bid;
 
   if (order_prefs == false) {
     return;
   }
 
-  cyclus::PrefMap<Material>::type::iterator reqit;
+  cyclus::MUMap<Material>::type::iterator reqit;
 
-  // Loop over all requests
-  for (reqit = prefs.begin(); reqit != prefs.end(); ++reqit) {
+  // Loop over all requests - adjust MU (marginal utility) since we're the requester
+  for (reqit = mu_prefs.begin(); reqit != mu_prefs.end(); ++reqit) {
     std::vector<Bid<Material>*> bids_vector;
     std::map<Bid<Material>*, double>::iterator mit;
     for (mit = reqit->second.begin(); mit != reqit->second.end(); ++mit) {
@@ -137,7 +138,7 @@ void Enrichment::AdjustMatlPrefs(
     for (int bidit = 0; bidit < bids_vector.size(); bidit++) {
       int new_pref = bidit + 1;
 
-      // For any bids with U-235 qty=0, set pref to zero.
+      // For any bids with U-235 qty=0, set pref to -1 to reject the trade
       if (!u235_mass) {
         Material::Ptr mat = bids_vector[bidit]->offer();
         cyclus::toolkit::MatQuery mq(mat);
