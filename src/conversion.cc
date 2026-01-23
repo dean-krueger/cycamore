@@ -44,6 +44,8 @@ Conversion::~Conversion() {}
 void Conversion::EnterNotify() {
   cyclus::Facility::EnterNotify();
   InitializePosition();
+  InitializeMarginalUtility(incommods, incommod_prefs);
+  InitializeMarginalCost();
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -100,6 +102,11 @@ std::set<RequestPortfolio<Material>::Ptr> Conversion::GetMatlRequests() {
   double available_capacity = AvailableFeedstockCapacity();
   if (available_capacity <= 0) return ports;
 
+  // Calculate Marginal Utility for each commodity using its preference
+  auto mu_results = CalcMarginalUtility(incommods, incommod_prefs);
+  std::vector<std::string> mu_commods = mu_results.first;
+  std::vector<double> mu_values = mu_results.second;
+
   // Create request portfolio
   RequestPortfolio<Material>::Ptr port(new RequestPortfolio<Material>());
 
@@ -107,21 +114,15 @@ std::set<RequestPortfolio<Material>::Ptr> Conversion::GetMatlRequests() {
   Material::Ptr mat = cyclus::NewBlankMaterial(available_capacity);
  
 
-  // Add request for all commodities using default preference
-  for (std::vector<std::string>::iterator it = incommods.begin();
-       it != incommods.end(); ++it) {
-    Request<Material>* req = port->AddRequest(mat, this, *it);
-  }
-
-  // Add capacity constraint to ensure we never get more feed than capacity
-  CapacityConstraint<Material> cc(available_capacity);
-  port->AddConstraint(cc);
-
-  ports.insert(port);
+  // Add request for all commodities using their marginal utility values
+  for (int i = 0; i < incommods.size(); i++) {
+    Request<Material>* req = port->AddRequest(mat, this, mu_commods[i], mu_values[i]);
+    }
+    ports.insert(port);
   return ports;
 }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::set<BidPortfolio<Material>::Ptr> Conversion::GetMatlBids(
   CommodMap<Material>::type& commod_requests) {
   std::set<BidPortfolio<Material>::Ptr> ports;
@@ -140,10 +141,11 @@ std::set<BidPortfolio<Material>::Ptr> Conversion::GetMatlBids(
     double available = output.quantity();
     double requested = (*it)->target()->quantity();
     double offer_qty = std::min(available, requested);
+    double marginal_cost = CalcMarginalCost(output.Peek()->UnitValue());
 
     if (offer_qty > 0) {
       Material::Ptr offer = Material::CreateUntracked(offer_qty, output.Peek()->comp());
-      port->AddBid(*it, offer, this);  // Note: *it, not **it
+      port->AddBid(*it, offer, this, false, marginal_cost);  // Note: *it, not **it
     }
   }
 
