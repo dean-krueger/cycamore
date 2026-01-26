@@ -57,6 +57,11 @@ void Enrichment::Build(cyclus::Agent* parent) {
 void Enrichment::EnterNotify() {
   cyclus::Facility::EnterNotify();
   InitializePosition();
+  InitializeMarginalCost();
+
+  // Need these to be vectorized because of the function signature...
+  feed_commod_vec.push_back(feed_commod);
+  feed_pref_vec.push_back(feed_commod_pref);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -87,8 +92,14 @@ Enrichment::GetMatlRequests() {
   Material::Ptr mat = Request_();
   double amt = mat->quantity();
 
+  // Calculate Marginal Utility for the feed commodity using its preference
+  auto mu_results = CalcMarginalUtility(feed_commod_vec, feed_pref_vec);
+  std::vector<std::string> mu_commods = mu_results.first;
+  std::vector<double> mu_values = mu_results.second;
+
   if (amt > cyclus::eps_rsrc()) {
-    port->AddRequest(mat, this, feed_commod);
+    // Since there's only one feed commodity we just use the first element
+    port->AddRequest(mat, this, mu_commods[0], mu_values[0]);
     ports.insert(port);
   }
 
@@ -194,7 +205,9 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
       for (int k = 0; k < mats.size(); k++) {
         Material::Ptr m = mats[k];
         Request<Material>* req = *it;
-        tails_port->AddBid(req, m, this);
+
+        double tails_marginal_cost = CalcMarginalCost(m->UnitValue());
+        tails_port->AddBid(req, m, this, false, tails_marginal_cost);
       }
     }
     // overbidding (bidding on every offer)
@@ -221,7 +234,9 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
           ((request_enrich < max_enrich) ||
            (cyclus::AlmostEq(request_enrich, max_enrich)))) {
         Material::Ptr offer = Offer_(req->target());
-        commod_port->AddBid(req, offer, this);
+
+        double marginal_cost = CalcMarginalCost(offer->UnitValue());
+        commod_port->AddBid(req, offer, this, false, marginal_cost);
       }
     }
 

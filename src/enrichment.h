@@ -254,6 +254,8 @@ class Enrichment
  private:
   // Code Injection:
   #include "toolkit/position.cycpp.h"
+  #include "toolkit/marginal_cost.cycpp.h"
+  #include "toolkit/marginal_utility.cycpp.h"
 
   ///   @brief adds a material into the natural uranium inventory
   ///   @throws if the material is not the same composition as the feed_recipe
@@ -286,6 +288,15 @@ class Enrichment
     "uitype": "incommodity" \
   }
   std::string feed_commod;
+
+  #pragma cyclus var { \
+    "default": 1.0, \
+    "tooltip": "feed commodity preference", \
+    "doc": "preference for the feed commodity", \
+    "uilabel": "Feed Commodity Preference", \
+    "uitype": "range" \
+  }
+  double feed_commod_pref; 
 
   #pragma cyclus var { \
     "tooltip": "feed recipe",						\
@@ -388,7 +399,8 @@ class Enrichment
   // these help enable time series generation.
   double intra_timestep_swu_;
   double intra_timestep_feed_;
-
+  std::vector<std::string> feed_commod_vec;
+  std::vector<double> feed_pref_vec;
   friend class EnrichmentTest;
   // ---
 
