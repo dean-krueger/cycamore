@@ -354,8 +354,14 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> FuelFab::GetMatlBids(
 
       // Since these are bulk buffers, the matl unit_values get averaged over
       // all historical trades automatically.
-      double fiss_matl_cost = fiss.Peek()->UnitValue();
-      double fill_matl_cost = fill.Peek()->UnitValue();
+      double fiss_matl_cost = 0;
+      if (!fiss.empty()) {
+        fiss_matl_cost = fiss.Peek()->UnitValue();
+      }
+      double fill_matl_cost = 0;
+      if (!fill.empty()) {
+        fill_matl_cost = fill.Peek()->UnitValue();
+      }
       
       Material::Ptr m1 = Material::CreateUntracked(fiss_frac * tgt_qty, c_fiss, fiss_matl_cost);
       Material::Ptr m2 = Material::CreateUntracked(fill_frac * tgt_qty, c_fill, fill_matl_cost);
@@ -376,8 +382,14 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> FuelFab::GetMatlBids(
 
       // Since these are bulk buffers, the matl unit_values get averaged over
       // all historical trades automatically.
-      double fiss_matl_cost = fiss.Peek()->UnitValue();
-      double topup_matl_cost = topup.Peek()->UnitValue();
+      double fiss_matl_cost = 0;
+      if (!fiss.empty()) {
+        fiss_matl_cost = fiss.Peek()->UnitValue();
+      }
+      double topup_matl_cost = 0;
+      if (!topup.empty()) {
+        topup_matl_cost = topup.Peek()->UnitValue();
+      }
 
       Material::Ptr m1 =
           Material::CreateUntracked(topup_frac * tgt_qty, c_topup, topup_matl_cost);

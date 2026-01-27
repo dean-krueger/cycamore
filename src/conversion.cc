@@ -44,8 +44,19 @@ Conversion::~Conversion() {}
 void Conversion::EnterNotify() {
   cyclus::Facility::EnterNotify();
   InitializePosition();
-  InitializeMarginalUtility(incommods, incommod_prefs);
   InitializeMarginalCost();
+  
+  // Initialize default preferences if not provided
+  if (incommod_prefs.size() == 0) {
+    for (int i = 0; i < incommods.size(); ++i) {
+      incommod_prefs.push_back(cyclus::kDefaultPref);
+    }
+  } else if (incommod_prefs.size() != incommods.size()) {
+    std::stringstream ss;
+    ss << "incommod_prefs has " << incommod_prefs.size()
+       << " values, expected " << incommods.size();
+    throw cyclus::ValueError(ss.str());
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -113,12 +124,18 @@ std::set<RequestPortfolio<Material>::Ptr> Conversion::GetMatlRequests() {
   // Create material request with no recipe
   Material::Ptr mat = cyclus::NewBlankMaterial(available_capacity);
  
-
   // Add request for all commodities using their marginal utility values
   for (int i = 0; i < incommods.size(); i++) {
+    std::cout << mu_commods.size() << std::endl;
+    std::cout << mu_values.size() << std::endl;
     Request<Material>* req = port->AddRequest(mat, this, mu_commods[i], mu_values[i]);
-    }
-    ports.insert(port);
+  }
+
+  // Add capacity constraint to ensure we never get more feed than capacity
+  CapacityConstraint<Material> cc(available_capacity);
+  port->AddConstraint(cc);
+
+  ports.insert(port);
   return ports;
 }
 
