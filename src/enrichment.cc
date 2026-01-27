@@ -186,6 +186,10 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
   using cyclus::Request;
   using cyclus::toolkit::MatVec;
   using cyclus::toolkit::RecordTimeSeries;
+  using cyclus::toolkit::Assays;
+  using cyclus::toolkit::UraniumAssayMass;
+  using cyclus::toolkit::SwuRequired;
+  using cyclus::toolkit::FeedQty;
 
   std::set<BidPortfolio<Material>::Ptr> ports;
 
@@ -206,6 +210,8 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
         Material::Ptr m = mats[k];
         Request<Material>* req = *it;
 
+        std::cout << "Unit Value (Tails): " << m->UnitValue() << std::endl;
+        std::cout << "Marginal Cost (Tails): " << CalcMarginalCost(m->UnitValue()) << std::endl;
         double tails_marginal_cost = CalcMarginalCost(m->UnitValue());
         tails_port->AddBid(req, m, this, false, tails_marginal_cost);
       }
@@ -229,13 +235,31 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
     for (it = commod_requests.begin(); it != commod_requests.end(); ++it) {
       Request<Material>* req = *it;
       Material::Ptr mat = req->target();
-      double request_enrich = cyclus::toolkit::UraniumAssayMass(mat);
+      double request_enrich = UraniumAssayMass(mat);
       if (ValidReq(req->target()) &&
           ((request_enrich < max_enrich) ||
            (cyclus::AlmostEq(request_enrich, max_enrich)))) {
         Material::Ptr offer = Offer_(req->target());
 
-        double marginal_cost = CalcMarginalCost(offer->UnitValue());
+        Assays assays(FeedAssay(), UraniumAssayMass(mat), tails_assay);
+        double swu_cost = GetEconParameter("variable_cost_per_unit");
+        double swu_req = SwuRequired(offer->quantity(), assays);
+        double input_material_qty = FeedQty(offer->quantity(), assays);
+
+        // Calculate average unit value of feed materials (quantity-weighted)
+        double total_cost = 0.0;
+        double total_qty = 0.0;
+        MatVec feed_materials = inventory.PopN(inventory.count());
+        for (const auto& mat : feed_materials) {
+          total_cost += mat->quantity() * mat->UnitValue();
+          total_qty += mat->quantity();
+        }
+        inventory.Push(feed_materials);
+        
+        double avg_unit_value = (total_qty > 0) ? (total_cost / total_qty) : 0.0;
+        double input_material_cost = input_material_qty * avg_unit_value;
+        double marginal_cost = (input_material_cost + swu_cost * swu_req) / offer->quantity();
+        
         commod_port->AddBid(req, offer, this, false, marginal_cost);
       }
     }
