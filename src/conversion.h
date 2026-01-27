@@ -91,6 +91,7 @@ class Conversion
   std::vector<std::string> incommods;
 
   #pragma cyclus var { \
+    "default": [], \
     "tooltip": "input commodity preferences", \
     "doc": "preferences for each of the given commodities, in the same order.", \
     "uilabel": "Input Commodity Preferences", \
