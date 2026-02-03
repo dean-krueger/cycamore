@@ -46,7 +46,8 @@ void Enrichment::Build(cyclus::Agent* parent) {
   Facility::Build(parent);
   if (initial_feed > 0) {
     inventory.Push(Material::Create(this, initial_feed,
-                                    context()->GetRecipe(feed_recipe)));
+                                    context()->GetRecipe(feed_recipe), 
+                                    cyclus::Package::unpackaged_name(), 0.0));
   }
 
   LOG(cyclus::LEV_DEBUG2, "EnrFac") << "Enrichment "
@@ -58,7 +59,7 @@ void Enrichment::EnterNotify() {
   cyclus::Facility::EnterNotify();
   InitializePosition();
   InitializeMarginalCost();
-
+  
   // Need these to be vectorized because of the function signature...
   feed_commod_vec.push_back(feed_commod);
   feed_pref_vec.push_back(feed_commod_pref);
@@ -67,7 +68,6 @@ void Enrichment::EnterNotify() {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Enrichment::Tick() {
   current_swu_capacity = SwuCapacity();
-
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -210,8 +210,6 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
         Material::Ptr m = mats[k];
         Request<Material>* req = *it;
 
-        std::cout << "Unit Value (Tails): " << m->UnitValue() << std::endl;
-        std::cout << "Marginal Cost (Tails): " << CalcMarginalCost(m->UnitValue()) << std::endl;
         double tails_marginal_cost = CalcMarginalCost(m->UnitValue());
         tails_port->AddBid(req, m, this, false, tails_marginal_cost);
       }
@@ -259,7 +257,7 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Enrichment::GetMatlBids(
         double avg_unit_value = (total_qty > 0) ? (total_cost / total_qty) : 0.0;
         double input_material_cost = input_material_qty * avg_unit_value;
         double marginal_cost = (input_material_cost + swu_cost * swu_req) / offer->quantity();
-        
+
         commod_port->AddBid(req, offer, this, false, marginal_cost);
       }
     }
@@ -378,8 +376,7 @@ void Enrichment::AddMat_(Material::Ptr mat) {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Material::Ptr Enrichment::Request_() {
   double qty = std::max(0.0, inventory.capacity() - inventory.quantity());
-  return Material::CreateUntracked(qty,
-                                           context()->GetRecipe(feed_recipe));
+  return Material::CreateUntracked(qty, context()->GetRecipe(feed_recipe));
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
