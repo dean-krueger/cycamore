@@ -59,6 +59,11 @@ void Mixer::EnterNotify() {
     in_commods.push_back(streams_[i].second);
   }
 
+  // Optional recipe per stream: size to match streams_, use "" where not set
+  if (in_stream_recipes.size() < streams_.size()) {
+    in_stream_recipes.resize(streams_.size(), "");
+  }
+
   // ratio normalisation
   if (mixing_ratios.size() != in_commods.size()) {
     std::stringstream ss;
@@ -89,6 +94,13 @@ void Mixer::EnterNotify() {
   }
 
   sell_policy.Init(this, &output, "output").Set(out_commod).Start();
+
+  // Register output recipe name at sim start so it exists before first mix.
+  // Placeholder composition is overwritten with the real blend when we push.
+  if (!out_recipe.empty()) {
+    cyclus::CompMap empty;
+    context()->AddRecipe(out_recipe, cyclus::Composition::CreateFromMass(empty));
+  }
 
   InitializeMarginalCost();
   InitializePosition();
@@ -122,6 +134,9 @@ void Mixer::Tick() {
         }
       }
 
+      if (!out_recipe.empty()) {
+        context()->AddRecipe(out_recipe, m->comp());
+      }
       output.Push(m);
     }
   }
@@ -169,7 +184,12 @@ Mixer::GetMatlRequests() {
           new RequestPortfolio<cyclus::Material>());
 
       cyclus::Material::Ptr m;
-      m = cyclus::NewBlankMaterial(streambufs[name].space());
+      if (i < in_stream_recipes.size() && !in_stream_recipes[i].empty()) {
+        cyclus::Composition::Ptr rec = context()->GetRecipe(in_stream_recipes[i]);
+        m = cyclus::Material::CreateUntracked(streambufs[name].space(), rec);
+      } else {
+        m = cyclus::NewBlankMaterial(streambufs[name].space());
+      }
 
       std::vector<cyclus::Request<cyclus::Material>*> reqs;
 

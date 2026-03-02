@@ -334,7 +334,7 @@ std::set<cyclus::BidPortfolio<Material>::Ptr> Separations::GetMatlBids(
         tot_bid += m->quantity();
 
 
-        double marginal_cost = CalcMarginalCost(m->UnitValue());
+        double marginal_cost = 0.0; // Set to zero since this is a waste stream?
 
         // this fix the problem of the cyclus exchange manager which crashes
         // when a bid with a quantity <=0 is offered.
