@@ -244,9 +244,17 @@ void Sink::SetRequestAmt() {
     requestAmt =  context()->random_uniform_real(0, amt);
   }
   else if (random_size_type == "NormalReal") {
-    requestAmt =  context()->random_normal_real(amt * random_size_mean,
-                                                amt * random_size_stddev, 
+    // NOTE: Dean Krueger changed because he wanted some specific behavior from
+    // this. Change this back later! Or fix it more rigerously. 
+    requestAmt =  context()->random_normal_real(random_size_mean,
+                                                random_size_stddev, 
                                                 0, amt);
+  }
+    else if (random_size_type == "NormalInt") {
+    // NOTE: Dean Krueger added because it didn't exist for some reason. 
+    requestAmt =  std::floor(context()->random_normal_real(random_size_mean,
+                                                           random_size_stddev, 
+                                                           0, amt));
   }
   else {
     requestAmt =  amt;
