@@ -25,7 +25,7 @@ namespace cycamore {
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 Retailer::Retailer(cyclus::Context* ctx)
     : cyclus::Facility(ctx) {
-      inv_tracker.Init({&stock}, 1e+299);
+      inv_tracker.Init({&ordered}, 1e+299);
     }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -46,36 +46,59 @@ void Retailer::EnterNotify() {
   cyclus::Facility::EnterNotify();
 
   // Select Buy Policy
-  if (buy_policy_name == "rQ") {
+  if (buy_policy_name == "Optimal rQ") {
 
     // Figure out fill and req_at using demand signals
-    double h = annual_holding_cost / context()->dt();
-    double Q = CalculateOrderQuantity(h, cost_to_order, demand_mean);
-    double z = CalculateSafetyFactor(h, demand_mean, stockout_penalty, Q);
-    double r = std::ceil(demand_mean + z * demand_stddev);
-
+    h = annual_holding_cost / context()->dt();
+    Q = CalculateOrderQuantity(h, cost_to_order, demand_mean);
+    z = CalculateSafetyFactor(h, demand_mean, stockout_penalty, Q);
+    mu_L = demand_mean * lead_time;
+    sig_L = demand_stddev * std::sqrt(lead_time);
+    r = std::ceil(mu_L + z * sig_L);
+    
     BP
-      .Init(this, &stock, std::string("Stock"),
+      .Init(this, &ordered, std::string("Ordered"),
               &inv_tracker, std::string("rQ"), Q, r)
       .Set(incommod)
       .Start();
+
+
   } 
-  else if (buy_policy_name == "periodic") {
+  else if (buy_policy_name == "Type 1") {
 
-    int buy_frequency = 0;
-    int buy_quantity = 0;
-
-    IntDistribution::Ptr active_dist = FixedIntDist::Ptr(new FixedIntDist(1));
-    IntDistribution::Ptr dormant_dist =
-        FixedIntDist::Ptr(new FixedIntDist(buy_frequency - 1));
-    DoubleDistribution::Ptr size_dist =
-        FixedDoubleDist::Ptr(new FixedDoubleDist(1));
+    // Figure out fill and req_at using demand signals
+    h = annual_holding_cost / context()->dt();
+    Q = CalculateOrderQuantity(h, cost_to_order, demand_mean);
+    z = CalculateSafetyFactor(alpha);
+    mu_L = demand_mean * lead_time;
+    sig_L = demand_stddev * std::sqrt(lead_time);
+    r = std::ceil(mu_L + z * sig_L);
 
     BP
-      .Init(this, &stock, std::string("Stock"), &inv_tracker,
-            buy_quantity, active_dist, dormant_dist, size_dist)
-      .Set(incommod);
+      .Init(this, &ordered, std::string("Ordered"),
+              &inv_tracker, std::string("rQ"), Q, r)
+      .Set(incommod)
+      .Start();
   }
+  else if (buy_policy_name == "Periodic") {
+      BP
+        .Init(this, &ordered, std::string("Ordered"),
+                &inv_tracker, std::string("sS"), reorder_level, fill_level)
+        .Set(incommod)
+        .Start();
+  }
+  else if (buy_policy_name == "rQ") {
+
+     r = reorder_level;
+     Q = reorder_qty; 
+
+      BP
+        .Init(this, &ordered, std::string("Ordered"),
+                &inv_tracker, std::string("rQ"), Q, r)
+        .Set(incommod)
+        .Start();
+  }
+  
 
   InitializePosition();
 }
@@ -86,14 +109,38 @@ void Retailer::Tick() {
   // Reset these for the new time step
   amt_requested = 0;
   amt_traded = 0;
+
+  // Inventory level is stock + in_transit
+  double inventory_level = stock.quantity() + in_transit.quantity();
+  // If we've ordered inventory already, but it hasn't arrived, don't reorder.
+  if (buy_policy_name != "Periodic" && inventory_level > r){
+    BP.Stop();
+  }
+
+  int t = context()->time();
+  while (!in_transit.empty() && delivery_times.front() <= t) {
+    stock.Push(in_transit.Pop());
+    delivery_times.pop_front();
+  }
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Retailer::Tock() {
+
+  // Restart Buy Policy for next time step
+  BP.Start();
+
+  // Handle our fake "transit time"
+  int delivery_time = context()->time() + lead_time;
+  while (!ordered.empty()) {
+    in_transit.Push(ordered.Pop());
+    delivery_times.push_back(delivery_time);
+  }
+
   int current_inv = stock.quantity();
   double inv_cost = stock.quantity() * annual_holding_cost / context()->dt();
   double stockout_cost = (amt_requested - amt_traded) * stockout_penalty;
-  Record(current_inv, inv_cost, stockout_cost);
+  Record(current_inv, inv_cost, amt_requested, amt_traded, stockout_cost);
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -138,13 +185,22 @@ double Retailer::CalculateSafetyFactor(double h, double D, double p, double Q) {
 
 }
 
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+double Retailer::CalculateSafetyFactor(double alpha) {
+
+  if (alpha > 1) {
+    throw std::invalid_argument("Alpha must be <= 1");
+    return 0;
+  }
+
+  return inverse_normal_cdf(alpha);
+
+}
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 std::set<BidPortfolio<Material>::Ptr> Retailer::GetMatlBids(
   CommodMap<Material>::type& commod_requests) {
   std::set<BidPortfolio<Material>::Ptr> ports;
-
-  // Check if we have material to offer
-  if (stock.quantity() <= 0) return ports;
 
   // Create bid portfolio
   BidPortfolio<Material>::Ptr port(new BidPortfolio<Material>());
@@ -163,6 +219,12 @@ std::set<BidPortfolio<Material>::Ptr> Retailer::GetMatlBids(
       Material::Ptr offer = Material::CreateUntracked(offer_qty, stock.Peek()->comp());
       port->AddBid(*it, offer, this);  // Note: *it, not **it
     }
+  }
+
+  // Check if we have material to offer
+  if (stock.quantity() <= 0) {
+    
+    return ports;
   }
 
   // Add capacity constraint so we never give out more than we have
@@ -191,13 +253,17 @@ void Retailer::GetMatlTrades(
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 void Retailer::Record(int stock,
                       double inv_cost,
+                      int amt_requested,
+                      int amt_supplied,
                       double stockout_cost) {
   context()
       ->NewDatum("RetailerData")
       ->AddVal("AgentId", id())
       ->AddVal("Time", context()->time())
-      ->AddVal("CurrentStock", stock)
+      ->AddVal("FinalStock", stock)
       ->AddVal("InventoryCost", inv_cost)
+      ->AddVal("AmountRequested", amt_requested)
+      ->AddVal("AmountSupplied", amt_supplied)
       ->AddVal("StockoutCost", stockout_cost)
       ->Record();
 }

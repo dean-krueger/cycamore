@@ -46,7 +46,8 @@ class Retailer
 
   virtual void Tock();
 
-  virtual void Record(int stock, double inv_cost, double stockout_cost);
+  virtual void Record(int stock, double inv_cost, int amt_requested, 
+                      int amt_supplied, double stockout_cost);
 
   virtual inline double CalculateOrderQuantity(double h, double K, double D) {
     return std::ceil(std::sqrt((2 * D * K)/h));
@@ -57,6 +58,7 @@ class Retailer
   virtual double inverse_normal_cdf(double alpha, double tol = 1e-6);
 
   virtual double CalculateSafetyFactor(double h, double D, double p, double Q);
+  virtual double CalculateSafetyFactor(double alpha);
 
   virtual std::set<cyclus::BidPortfolio<cyclus::Material>::Ptr>
   GetMatlBids(cyclus::CommodMap<cyclus::Material>::type&
@@ -95,8 +97,9 @@ class Retailer
     "tooltip": "Buy Policy to be used by the Retailer", \
     "uilabel": "Buy Policy", \
     "uitype": "combobox", \
-    "categorical": ["periodic", "rQ", "T1SL"], \
-    "doc": "Avaialable Buy Policies include sS, rQ, and T1SL." \
+    "categorical": ["Optimal rQ", "rQ", "Type 1", "Periodic"], \
+    "doc": "Avaialable Buy Policies include sS, rQ, Optimal rQ," \
+           "and Type 1 Service Level (Type 1)." \
   }
   std::string buy_policy_name;
 
@@ -140,7 +143,54 @@ class Retailer
   }
   double stockout_penalty;
 
+  #pragma cyclus var { \
+    "default": 0.0, \
+    "tooltip": "Percent of time demand is met by facility", \
+    "uilabel": "Service Level", \
+    "uitype": "range", \
+    "range": [0.0, 1.0], \
+    "doc": "Percent (as decimal) of transactions the retailer must meet demand" \
+  }
+  double alpha;
+
+  #pragma cyclus var { \
+    "default": 0.0, \
+    "tooltip": "Q in the rQ polciy", \
+    "uilabel": "Reorder Quantity", \
+    "doc": "Quantity of material to order once reorder inventory level hit" \
+  }
+  double reorder_qty;
+
+  #pragma cyclus var { \
+    "default": 0.0, \
+    "tooltip": "S in the sS policy", \
+    "uilabel": "Fill Level", \
+    "doc": "Level inventory filled to once reorder inventory level hit" \
+  }
+  double fill_level;
+
+
+  #pragma cyclus var { \
+    "default": 0.0, \
+    "tooltip": "r in the rQ polciy, or s in the sS policy", \
+    "uilabel": "Reorder Level", \
+    "doc": "Inventoty level below which to reorder" \
+  }
+  double reorder_level;
+
+  #pragma cyclus var { \
+    "default": 1, \
+    "tooltip": "lead time on ordered inventory", \
+    "uilabel": "Lead Time", \
+    "uitype": "range", \
+    "range": [1, 100000], \
+    "doc": "Number of timesteps between order placement and stock increase" \
+  }
+  int lead_time;
+
   // Material Bufffers
+  cyclus::toolkit::ResBuf<cyclus::Material> in_transit;
+  cyclus::toolkit::ResBuf<cyclus::Material> ordered;
   cyclus::toolkit::ResBuf<cyclus::Material> stock;
 
   // Buy Policy
@@ -152,6 +202,15 @@ class Retailer
 
   int amt_requested;
   int amt_traded;
+
+  double r;
+  double Q;
+  double h;
+  double z;
+  double mu_L;
+  double sig_L;
+
+  std::list<int> delivery_times;
 
   // clang-format on
 
