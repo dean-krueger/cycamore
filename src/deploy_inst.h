@@ -105,6 +105,11 @@ class DeployInst :
   // clang-format on
 
  private:
+  /// register a child
+  void Register_(cyclus::Agent* agent);
+
+  /// unregister a child
+  void Unregister_(cyclus::Agent* agent);
   // Code Injection:
   #include "toolkit/position.cycpp.h"
 
