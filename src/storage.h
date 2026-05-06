@@ -66,11 +66,12 @@ namespace cycamore {
 ///   Any stocks material in the stocks buffer is offered to the market.
 ///
 /// Sending Resources:
-///   Matched resources are sent immediately.
-class Storage : public cyclus::Facility,
-                public cyclus::toolkit::CommodityProducer,
-                public cyclus::toolkit::Position {
- public:
+/// Matched resources are sent immediately.
+class Storage
+  : public cyclus::Facility,
+    public cyclus::toolkit::CommodityProducer {
+      
+ public:  
   /// @param ctx the cyclus context for access to simulation-wide parameters
   Storage(cyclus::Context* ctx);
 
@@ -99,9 +100,6 @@ class Storage : public cyclus::Facility,
   /// A verbose printer for the Storage Facility
   virtual std::string str();
 
-  // --- Facility Members ---
-
-  // --- Agent Members ---
   /// Sets up the Storage Facility's trade requests
   virtual void EnterNotify();
 
@@ -285,32 +283,14 @@ class Storage : public cyclus::Facility,
   }
   cyclus::toolkit::TotalInvTracker inventory_tracker;
 
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": "Latitude of the agent's geographical position. The value "\
-           "should be expressed in degrees as a double." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": "Longitude of the agent's geographical position. The value "\
-           "should be expressed in degrees as a double." \
-  }
-  double longitude;
-
-  cyclus::toolkit::Position coordinates;
-
-  void RecordPosition();
-
   friend class StorageTest;
 
  private:
   // Code Injection
   #include "toolkit/matl_buy_policy.cycpp.h"
   #include "toolkit/matl_sell_policy.cycpp.h"
+  #include "toolkit/position.cycpp.h"
+
 };
 
 }  // namespace cycamore

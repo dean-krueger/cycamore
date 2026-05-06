@@ -138,6 +138,9 @@ class FuelFab
 
  private:
   // clang-format off
+  // Code Injection:
+  #include "toolkit/position.cycpp.h"
+
   #pragma cyclus var { \
     "doc": \
       "Ordered list of commodities on which to request filler stream material.", \
@@ -169,7 +172,7 @@ class FuelFab
   }
   double fill_size;
 
-  #pragma cyclus var { "capacity": "fill_size" }
+  #pragma cyclus var {"capacity": "fill_size"}
   cyclus::toolkit::ResBuf<cyclus::Material> fill;
 
   #pragma cyclus var { \
@@ -205,7 +208,7 @@ class FuelFab
   }
   double fiss_size;
 
-  #pragma cyclus var { "capacity": "fiss_size" }
+  #pragma cyclus var {"capacity": "fiss_size"}
   cyclus::toolkit::ResBuf<cyclus::Material> fiss;
 
   #pragma cyclus var { \
@@ -241,7 +244,7 @@ class FuelFab
   }
   double topup_size;
 
-  #pragma cyclus var { "capacity": "topup_size" }
+  #pragma cyclus var {"capacity": "topup_size"}
   cyclus::toolkit::ResBuf<cyclus::Material> topup;
 
   #pragma cyclus var { \
@@ -275,28 +278,6 @@ class FuelFab
   // intra-time-step state (not persisted)
   std::map<cyclus::Request<cyclus::Material>*, std::string> req_inventories_;
 
-  // clang-format off
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": \
-      "Latitude of the agent's geographical position in degrees." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": \
-      "Longitude of the agent's geographical position in degrees." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
-
-  /// Records an agent’s latitude and longitude to the output database.
-  void RecordPosition();
 };
 
 double CosiWeight(cyclus::Composition::Ptr c, const std::string& spectrum);

@@ -167,6 +167,8 @@ class Enrichment
   /// Destructor for the Enrichment class
   virtual ~Enrichment();
 
+  virtual void EnterNotify();
+
   virtual std::string version() { return CYCAMORE_VERSION; }
 
   #pragma cyclus
@@ -232,8 +234,11 @@ class Enrichment
   }
 
  private:
-  /// @brief Add a material into the natural uranium inventory.
-  /// @throws if the material is not the same composition as feed_recipe.
+  // Code Injection:
+  #include "toolkit/position.cycpp.h"
+
+  ///   @brief adds a material into the natural uranium inventory
+  ///   @throws if the material is not the same composition as the feed_recipe
   void AddMat_(cyclus::Material::Ptr mat);
 
   /// @brief generates a request for this facility given its current state.
@@ -255,9 +260,6 @@ class Enrichment
 
   /// @brief Record an enrichment event to the recorder.
   void RecordEnrichment_(double natural_u, double swu);
-
-  /// Records an agent's latitude and longitude to the output db.
-  void RecordPosition();
 
   // clang-format off
   #pragma cyclus var { \
@@ -380,23 +382,6 @@ class Enrichment
 
   friend class EnrichmentTest;
 
-  // clang-format off
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": "Latitude of the agent's geographical position in degrees." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": "Longitude of the agent's geographical position in degrees." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
 };
 
 }  // namespace cycamore

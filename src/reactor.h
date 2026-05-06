@@ -137,6 +137,9 @@ class Reactor : public cyclus::Facility,
   #pragma cyclus decl
 
  private:
+  // Code Injection:
+  #include "toolkit/position.cycpp.h"
+
   std::string fuel_incommod(cyclus::Material::Ptr m);
   std::string fuel_outcommod(cyclus::Material::Ptr m);
   std::string fuel_inrecipe(cyclus::Material::Ptr m);
@@ -285,6 +288,7 @@ class Reactor : public cyclus::Facility,
            "Batch size is equivalent to ``n_assem_batch / n_assem_core``.", \
   }
   int n_assem_batch;
+
   #pragma cyclus var { \
     "default": 3, \
     "uilabel": "Number of Assemblies in Core", \
@@ -463,28 +467,6 @@ class Reactor : public cyclus::Facility,
 
   // populated lazily and no need to persist.
   std::set<std::string> uniq_outcommods_;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": "Latitude of the agent's geographical position. The value should " \
-           "be expressed in degrees as a double." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": "Longitude of the agent's geographical position. The value should " \
-           "be expressed in degrees as a double." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
-
-  /// Records an agent's latitude and longitude to the output db
-  void RecordPosition();
 };
 
 } // namespace cycamore

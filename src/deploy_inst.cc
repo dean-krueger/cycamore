@@ -1,13 +1,11 @@
 // Implements the DeployInst class
 #include "deploy_inst.h"
+#include "error.h"
 
 namespace cycamore {
 
 DeployInst::DeployInst(cyclus::Context* ctx)
-    : cyclus::Institution(ctx),
-      latitude(0.0),
-      longitude(0.0),
-      coordinates(latitude, longitude) {}
+    : cyclus::Institution(ctx) {}
 
 DeployInst::~DeployInst() {}
 
@@ -15,12 +13,20 @@ void DeployInst::Build(cyclus::Agent* parent) {
   cyclus::Institution::Build(parent);
   BuildSched::iterator it;
   std::set<std::string> protos;
+
+  int sim_start = 12*(context()->sim_info().y0) + 
+                            context()->sim_info().m0;
+  int d_t = 0;
+  if(deployyear!=-1){
+    d_t += deployyear*12 - sim_start;
+  }
+
   for (int i = 0; i < prototypes.size(); i++) {
     std::string proto = prototypes[i];
 
     std::stringstream ss;
     ss << proto;
-
+    
     if (lifetimes.size() == prototypes.size()) {
       cyclus::Agent* a = context()->CreateAgent<Agent>(proto);
       if (a->lifetime() != lifetimes[i]) {
@@ -39,12 +45,25 @@ void DeployInst::Build(cyclus::Agent* parent) {
       }
     }
 
-    int t = build_times[i];
+    int t_build = build_times[i] + d_t;
+
+    if(t_build < 0){
+      std::stringstream ss;
+      ss << "Deploy year is before simulation start. Adjust deployment time." ;
+      throw cyclus::ValueError(ss.str());
+    }
+    else if(t_build >= context()->sim_info().duration){
+      cyclus::Warn<cyclus::VALUE_WARNING>(
+      "Deployment year must be less than simulation duration;"
+      "A facility will not be deployed during the simulation.");
+    }
+
     for (int j = 0; j < n_build[i]; j++) {
-      context()->SchedBuild(this, proto, t);
+      context()->SchedBuild(this, proto, t_build);
     }
   }
 }
+
 
 void DeployInst::EnterNotify() {
   cyclus::Institution::EnterNotify();
@@ -65,7 +84,7 @@ void DeployInst::EnterNotify() {
        << " lifetimes vals, expected " << n;
     throw cyclus::ValueError(ss.str());
   }
-  RecordPosition();
+  InitializePosition();
 }
 
 void DeployInst::BuildNotify(Agent* a) {
@@ -117,18 +136,6 @@ void DeployInst::WriteProducerInformation(
     LOG(cyclus::LEV_DEBUG3, "maninst") << "               cost: " <<
                                        producer->Cost(*it);
   }
-}
-
-void DeployInst::RecordPosition() {
-  std::string specification = this->spec();
-  context()
-      ->NewDatum("AgentPosition")
-      ->AddVal("Spec", specification)
-      ->AddVal("Prototype", this->prototype())
-      ->AddVal("AgentId", id())
-      ->AddVal("Latitude", latitude)
-      ->AddVal("Longitude", longitude)
-      ->Record();
 }
 
 extern "C" cyclus::Agent* ConstructDeployInst(cyclus::Context* ctx) {

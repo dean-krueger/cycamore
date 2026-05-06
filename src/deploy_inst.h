@@ -82,14 +82,22 @@ class DeployInst :
   std::vector<int> n_build;
 
   #pragma cyclus var { \
-    "doc": "Lifetimes for each prototype in prototype list (same order). " \
-           "These lifetimes override the lifetimes in the original " \
-           "prototype definition. If unspecified, lifetimes from the " \
-           "original prototype definitions are used. Although a new " \
-           "prototype is created in the Prototypes table for each " \
-           "lifetime with the suffix '_life_[lifetime]', all deployed " \
-           "agents themselves will have the same original prototype " \
-           "name (and so will the Agents tables).", \
+    "doc": "Year to start deploying prototypes.", \
+    "default": -1, \
+    "uilabel": "deploy year",\
+  }
+  int deployyear;
+
+  #pragma cyclus var {							\
+    "doc": "Lifetimes for each prototype in prototype list (same order)." \
+           " These lifetimes override the lifetimes in the original prototype" \
+           " definition." \
+           " If unspecified, lifetimes from the original prototype definitions"\
+           " are used." \
+           " Although a new prototype is created in the Prototypes table for" \
+           " each lifetime with the suffix '_life_[lifetime]'," \
+           " all deployed agents themselves will have the same original" \
+           " prototype name (and so will the Agents tables).", \
     "default": [], \
     "uilabel": "Lifetimes" \
   }
@@ -97,34 +105,9 @@ class DeployInst :
   // clang-format on
 
  private:
-  // clang-format off
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": "Latitude of the agent's geographical position. The value " \
-           "should be expressed in degrees as a double." \
-  }
-  double latitude;
+  // Code Injection:
+  #include "toolkit/position.cycpp.h"
 
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": "Longitude of the agent's geographical position. The value " \
-           "should be expressed in degrees as a double." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
-
-  /// Records an agent's latitude and longitude to the output db
-  void RecordPosition();
-
-  /// register a child
-  void Register_(cyclus::Agent* agent);
-
-  /// unregister a child
-  void Unregister_(cyclus::Agent* agent);
 };
 
 }  // namespace cycamore

@@ -84,21 +84,29 @@ class GrowthRegion : public cyclus::Region,
                ["oneormore", \
                 ["pair", "int", ["pair", "string", "string"]]]], \
     "uilabel": "Growth Demand Curves", \
-    "doc": \
-      "Nameplate capacity demand functions.\n\n" \
-      "Each demand type must be for a commodity for which capacity can be " \
-      "built (e.g., 'power' from cycamore::Reactors). Any archetype that " \
-      "implements the cyclus::toolkit::CommodityProducer interface can " \
-      "interact with GrowthRegion accordingly.\n\n" \
-      "Demand functions are defined as piecewise functions. Each piece must " \
-      "include a starting time and a function description consisting of a " \
-      "function type and associated parameters.\n\n" \
-      "  * Start times are inclusive: for start time t0, the function is " \
-      "evaluated on [t0, ∞).\n\n" \
-      "  * Supported function types are defined by the " \
-      "cyclus::toolkit::BasicFunctionFactory.\n\n" \
-      "  * Function type names are lower-case (e.g., 'linear', 'exponential').\n\n" \
-      "  * Parameters for each function type are in their respective docs." \
+    "doc": "Nameplate capacity demand functions." \
+    "\n\n"                                       \
+    "Each demand type must be for a commodity for which capacity can be built "\
+    "(e.g., 'power' from cycamore::Reactors). Any archetype that implements the "\
+    "cyclus::toolkit::CommodityProducer interface can interact with the "\
+    "GrowthRegion in the manner."                                       \
+    "\n\n"                                       \
+    "Demand functions are defined as piecewise functions. Each piece must "\
+    "be provided a starting time and function description. Each function "\
+    "description is comprised of a function type and associated parameters. "\
+    "\n\n"                                       \
+    "  * Start times are inclusive. For a start time :math:`t_0`, the demand "\
+    "function is evaluated on :math:`[t_0, infinity)`."                     \
+    "\n\n"                                       \
+    "  * Supported function types are based on the "\
+    "`cyclus::toolkit::BasicFunctionFactory "\
+    "types <http://fuelcycle.org/cyclus/api/classcyclus_1_1toolkit_1_1BasicFunctionFactory.html#a2f3806305d99a745ab57c300e54a603d>`_. " \
+    "\n\n"                                       \
+    "  * The type name is the lower-case name of the function (e.g., " \
+    "'linear', 'exponential', etc.)." \
+    "\n\n"                                       \
+    "  * The parameters associated with each function type can be found on their " \
+    "respective documentation pages.",                                  \
   }
 std::map<std::string, std::vector<std::pair<int, std::pair<std::string, std::string> > > > commodity_demand;
   // clang-format on
@@ -128,31 +136,10 @@ std::map<std::string, std::vector<std::pair<int, std::pair<std::string, std::str
   void OrderBuilds(cyclus::toolkit::Commodity& commodity,
                    double unmetdemand);
 
- private:
-  // clang-format off
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": \
-      "Latitude of the agent's geographical position. The value should be " \
-      "expressed in degrees as a double." \
-  }
-  double latitude;
+  private:
+  // Code Injection:
+  #include "toolkit/position.cycpp.h"
 
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": \
-      "Longitude of the agent's geographical position. The value should be " \
-      "expressed in degrees as a double." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
-
-  /// Records an agent's latitude and longitude to the output db
-  void RecordPosition();
 };
 
 }  // namespace cycamore

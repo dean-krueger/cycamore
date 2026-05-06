@@ -6,16 +6,26 @@ Since last release
 ======================
 
 **Added:**
+<<<<<<< HEAD
 * Added clang-format protection to all .h files with #pragma blocks in /src (#644)
+=======
+* Added tests for Conversion Facility (#658)
+* Added Conversion Facility (#657)
+>>>>>>> c61cf6ce07a2492a389d526729a755c63c45ad0c
 * Replaced manual matl_buy/sell_policy code in storage with code injection (#639)
 * Added package parameter to storage (#603, #612, #616)
 * Added package parameter to source (#613, #617, #621, #623, #630)
 * Added default keep packaging to reactor (#618, #619)
 * Added support for Ubuntu 24.04 (#633)
 * Added (negative)binomial distributions for disruption modeling to storage (#635)
+* Added new variable to Deploy Institution to shift the deployment times (#677)
 
 **Changed:**
+<<<<<<< HEAD
 * Ran clang-format on /src (#644)
+=======
+* Cleaned up manual definitions of Position in favor of code injection (#641)
+>>>>>>> c61cf6ce07a2492a389d526729a755c63c45ad0c
 * Rely on ``python3`` in environment instead of ``python`` (#602)
 * Link against ``libxml++`` imported target in CMake instead of ``LIBXMLXX_LIBRARIES`` (#608)
 * Cleaned up ``using`` declarations throughout archetypes (#610)
@@ -30,6 +40,7 @@ Since last release
 * When trades fail in Source due to packaging, send empty material instead of seg faulting (#629)
 * Logging of resource moves between ResBufs in Storage is INFO4 not INFO1 (#625)
 * Support Boost>=1.86.0 (#637)
+* Update conributing guide to match current practice (#662)
 
 **Removed:**
 

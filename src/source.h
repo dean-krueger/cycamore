@@ -83,6 +83,9 @@ class Source : public cyclus::Facility,
                           cyclus::Material::Ptr>>& responses);
  private:
   // clang-format off
+ // Code Injection:
+ #include "toolkit/position.cycpp.h"
+
   #pragma cyclus var { \
     "tooltip": "source output commodity", \
     "doc": "Output commodity on which the source offers material.", \
@@ -147,30 +150,10 @@ class Source : public cyclus::Facility,
   std::string transport_unit;
 
   #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical latitude in degrees as a double", \
-    "doc": "Latitude of the agent's geographical position. The value should " \
-           "be expressed in degrees as a double." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-    "default": 0.0, \
-    "uilabel": "Geographical longitude in degrees as a double", \
-    "doc": "Longitude of the agent's geographical position. The value should " \
-           "be expressed in degrees as a double." \
-  }
-  double longitude;
-
-  #pragma cyclus var { \
-    "tooltip": "Material buffer" \
-  }
+    "tooltip":"Material buffer"}
   cyclus::toolkit::ResBuf<cyclus::Material> inventory;
   // clang-format on
 
-  cyclus::toolkit::Position coordinates;
-
-  void RecordPosition();
   void SetPackage();
 };
 

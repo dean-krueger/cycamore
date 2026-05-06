@@ -113,6 +113,9 @@ class Separations
 
  private:
   // clang-format off
+ // Code Injection:
+ #include "toolkit/position.cycpp.h"
+
   #pragma cyclus var { \
       "doc": "Ordered list of commodities on which to request feed material to "\
              "separate. Order only matters for matching up with feed commodity "\
@@ -210,28 +213,6 @@ class Separations
   // state var.
   std::map<std::string, cyclus::toolkit::ResBuf<cyclus::Material> > streambufs;
 
-  // clang-format off
-  #pragma cyclus var { \
-      "default": 0.0, \
-      "uilabel": "Geographical latitude in degrees as a double", \
-      "doc": "Latitude of the agent's geographical position. The value "\
-             "should be expressed in degrees as a double." \
-  }
-  double latitude;
-
-  #pragma cyclus var { \
-      "default": 0.0, \
-      "uilabel": "Geographical longitude in degrees as a double", \
-      "doc": "Longitude of the agent's geographical position. The value "\
-             "should be expressed in degrees as a double." \
-  }
-  double longitude;
-  // clang-format on
-
-  cyclus::toolkit::Position coordinates;
-
-  /// Records an agent's latitude and longitude to the output db
-  void RecordPosition();
   void Record(std::string name, double val, std::string type);
 
 };
