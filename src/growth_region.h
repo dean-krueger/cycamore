@@ -108,7 +108,7 @@ class GrowthRegion : public cyclus::Region,
     "  * The parameters associated with each function type can be found on their " \
     "respective documentation pages.",                                  \
   }
-std::map<std::string, std::vector<std::pair<int, std::pair<std::string, std::string> > > > commodity_demand;
+  std::map<std::string, std::vector<std::pair<int, std::pair<std::string, std::string> > > > commodity_demand;  // must match Demand typedef
   // clang-format on
 
 #if CYCLUS_HAS_COIN

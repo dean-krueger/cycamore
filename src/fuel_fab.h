@@ -275,7 +275,8 @@ class FuelFab
   std::string spectrum;
   // clang-format on
 
-  // intra-time-step state (not persisted)
+  // intra-time-step state - no need to be a state var
+  // map<request, inventory name>
   std::map<cyclus::Request<cyclus::Material>*, std::string> req_inventories_;
 
 };

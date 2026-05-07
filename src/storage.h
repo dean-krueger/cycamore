@@ -283,6 +283,7 @@ class Storage
   }
   cyclus::toolkit::TotalInvTracker inventory_tracker;
 
+  // clang-format on
   friend class StorageTest;
 
  private:

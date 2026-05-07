@@ -467,6 +467,7 @@ class Reactor : public cyclus::Facility,
 
   // populated lazily and no need to persist.
   std::set<std::string> uniq_outcommods_;
+  // clang-format on
 };
 
 } // namespace cycamore

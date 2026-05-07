@@ -78,6 +78,7 @@ class Sink : public cyclus::Facility,
   virtual void SetNextBuyTime();
 
   /// add a commodity to the set of input commodities
+  /// @param name the commodity name
   inline void AddCommodity(std::string name) {
     in_commods.push_back(name);
   }
@@ -288,6 +289,7 @@ class Sink : public cyclus::Facility,
     "uitype": "bool" \
   }
   bool keep_packaging;
+  // clang-format on
 
 };
 
