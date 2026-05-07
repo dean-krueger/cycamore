@@ -23,16 +23,14 @@ class Context;
 /// total inventory size.  The inventory size and throughput capacity both
 /// default to infinite. If a recipe is provided, it will request material with
 /// that recipe. Requests are made for any number of specified commodities.
-class Sink : public cyclus::Facility,
-             public cyclus::toolkit::Position {
-              
+class Sink : public cyclus::Facility, public cyclus::toolkit::Position {
  public:
   Sink(cyclus::Context* ctx);
   virtual ~Sink();
 
   virtual std::string version() { return CYCAMORE_VERSION; }
 
-    // clang-format off
+  // clang-format off
   #pragma cyclus note { \
     "doc": \
       " A sink facility that accepts materials and products with a fixed\n" \
@@ -54,12 +52,12 @@ class Sink : public cyclus::Facility,
   /// @brief SinkFacilities request Materials of their given commodity.  Note
   /// that it is assumed the Sink operates on a single resource type!
   virtual std::set<cyclus::RequestPortfolio<cyclus::Material>::Ptr>
-      GetMatlRequests();
+  GetMatlRequests();
 
   /// @brief SinkFacilities request Products of their given commodity.  Note
   /// that it is assumed the Sink operates on a single resource type!
   virtual std::set<cyclus::RequestPortfolio<cyclus::Product>::Ptr>
-      GetGenRsrcRequests();
+  GetGenRsrcRequests();
 
   /// @brief SinkFacilities place accepted trade Materials in their Inventory
   virtual void AcceptMatlTrades(
@@ -79,9 +77,7 @@ class Sink : public cyclus::Facility,
 
   /// add a commodity to the set of input commodities
   /// @param name the commodity name
-  inline void AddCommodity(std::string name) {
-    in_commods.push_back(name);
-  }
+  inline void AddCommodity(std::string name) { in_commods.push_back(name); }
 
   /// sets the size of the storage inventory for received material
   inline void SetMaxInventorySize(double size) {
@@ -90,14 +86,10 @@ class Sink : public cyclus::Facility,
   }
 
   /// @return the maximum inventory storage size
-  inline double MaxInventorySize() const {
-    return inventory.capacity();
-  }
+  inline double MaxInventorySize() const { return inventory.capacity(); }
 
   /// @return the current inventory storage size
-  inline double InventorySize() const {
-    return inventory.quantity();
-  }
+  inline double InventorySize() const { return inventory.quantity(); }
 
   /// determines the amount to request
   inline double SpaceAvailable() const {
@@ -121,8 +113,8 @@ class Sink : public cyclus::Facility,
   }
 
  private:
-  // Code Injection:
-  #include "toolkit/position.cycpp.h"
+// Code Injection:
+#include "toolkit/position.cycpp.h"
 
   double requestAmt;
   int nextBuyTime;
@@ -290,7 +282,6 @@ class Sink : public cyclus::Facility,
   }
   bool keep_packaging;
   // clang-format on
-
 };
 
 }  // namespace cycamore

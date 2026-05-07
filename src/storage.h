@@ -32,15 +32,15 @@ namespace cycamore {
 ///
 /// @section agentparams Agent Parameters
 /// in_commods is a vector of strings naming the commodities that this facility
-/// receives  
-/// out_commods is a string naming the commodity that in_commod is stocks into  
+/// receives
+/// out_commods is a string naming the commodity that in_commod is stocks into
 /// residence_time is the minimum number of timesteps between receiving and
-/// offering  
+/// offering
 /// in_recipe (optional) describes the incoming resource by recipe
 ///
 /// @section optionalparams Optional Parameters
-/// max_inv_size is the maximum capacity of the inventory storage  
-/// throughput is the maximum processing capacity per timestep  
+/// max_inv_size is the maximum capacity of the inventory storage
+/// throughput is the maximum processing capacity per timestep
 /// package is the name of the package type to ship
 ///
 /// @section detailed Detailed Behavior
@@ -67,15 +67,13 @@ namespace cycamore {
 ///
 /// Sending Resources:
 /// Matched resources are sent immediately.
-class Storage
-  : public cyclus::Facility,
-    public cyclus::toolkit::CommodityProducer {
-      
- public:  
+class Storage : public cyclus::Facility,
+                public cyclus::toolkit::CommodityProducer {
+ public:
   /// @param ctx the cyclus context for access to simulation-wide parameters
   Storage(cyclus::Context* ctx);
 
-  #pragma cyclus decl
+#pragma cyclus decl
 
   // clang-format off
   #pragma cyclus note { \
@@ -131,19 +129,13 @@ class Storage
   // --- Storage Members ---
 
   /// @brief current maximum amount that can be added to processing
-  inline double current_capacity() {
-    return (inventory_tracker.space());
-  }
+  inline double current_capacity() { return (inventory_tracker.space()); }
 
   /// @brief returns total capacity
-  inline double capacity() {
-    return inventory_tracker.capacity();
-  }
+  inline double capacity() { return inventory_tracker.capacity(); }
 
   /// @brief returns the time key for ready materials
-  inline int ready_time() {
-    return context()->time() - residence_time;
-  }
+  inline int ready_time() { return context()->time() - residence_time; }
 
   // clang-format off
   #pragma cyclus var { \
@@ -264,34 +256,27 @@ class Storage
     "tooltip": "Buffer for material held for required residence_time" \
   }
   cyclus::toolkit::ResBuf<cyclus::Material> ready;
-  // clang-format on
 
   //// list of input times for materials entering the processing buffer
-  #pragma cyclus var { \
-    "default": [], \
-    "internal": True \
-  }
+  #pragma cyclus var {"default" : [], "internal" : True }
   std::list<int> entry_times;
 
   #pragma cyclus var { \
-    "tooltip": "Buffer for material still waiting for required residence_time" \
-  }
+    "tooltip" : "Buffer for material still waiting for required residence_time" }
   cyclus::toolkit::ResBuf<cyclus::Material> processing;
 
   #pragma cyclus var { \
-    "tooltip": "Total Inventory Tracker to restrict maximum agent inventory" \
-  }
+    "tooltip" : "Total Inventory Tracker to restrict maximum agent inventory" }
   cyclus::toolkit::TotalInvTracker inventory_tracker;
 
   // clang-format on
   friend class StorageTest;
 
  private:
-  // Code Injection
-  #include "toolkit/matl_buy_policy.cycpp.h"
-  #include "toolkit/matl_sell_policy.cycpp.h"
-  #include "toolkit/position.cycpp.h"
-
+// Code Injection
+#include "toolkit/matl_buy_policy.cycpp.h"
+#include "toolkit/matl_sell_policy.cycpp.h"
+#include "toolkit/position.cycpp.h"
 };
 
 }  // namespace cycamore

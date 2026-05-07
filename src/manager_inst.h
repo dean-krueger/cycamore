@@ -10,11 +10,10 @@ namespace cycamore {
 /// @section introduction Introduction
 /// @section detailedBehavior Detailed Behavior
 /// @warning The ManagerInst is experimental
-class ManagerInst
-    : public cyclus::Institution,
-      public cyclus::toolkit::CommodityProducerManager,
-      public cyclus::toolkit::Builder,
-      public cyclus::toolkit::Position {
+class ManagerInst : public cyclus::Institution,
+                    public cyclus::toolkit::CommodityProducerManager,
+                    public cyclus::toolkit::Builder,
+                    public cyclus::toolkit::Position {
  public:
   /// Default constructor
   ManagerInst(cyclus::Context* ctx);
@@ -24,7 +23,7 @@ class ManagerInst
 
   virtual std::string version() { return CYCAMORE_VERSION; }
 
-  #pragma cyclus
+#pragma cyclus
 
   // clang-format off
   #pragma cyclus note { \
@@ -44,12 +43,11 @@ class ManagerInst
 
   /// write information about a commodity producer to a stream
   /// @param producer the producer
-  void WriteProducerInformation(cyclus::toolkit::CommodityProducer*
-                                producer);
+  void WriteProducerInformation(cyclus::toolkit::CommodityProducer* producer);
 
-  private:
-  // Code Injection:
-  #include "toolkit/position.cycpp.h"
+ private:
+// Code Injection:
+#include "toolkit/position.cycpp.h"
 
   /// register a child
   void Register_(cyclus::Agent* agent);
