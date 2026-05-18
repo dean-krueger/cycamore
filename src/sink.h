@@ -80,6 +80,7 @@ class Sink : public cyclus::Facility, public cyclus::toolkit::Position {
   inline void AddCommodity(std::string name) { in_commods.push_back(name); }
 
   /// sets the size of the storage inventory for received material
+  /// @param size the storage size
   inline void SetMaxInventorySize(double size) {
     max_inv_size = size;
     inventory.capacity(size);
@@ -97,6 +98,7 @@ class Sink : public cyclus::Facility, public cyclus::toolkit::Position {
   }
 
   /// sets the capacity of a material generated at any given time step
+  /// @param cap the reception capacity
   inline void Capacity(double cap) { capacity = cap; }
 
   /// @return the reception capacity at any given time step
@@ -120,6 +122,8 @@ class Sink : public cyclus::Facility, public cyclus::toolkit::Position {
   int nextBuyTime;
 
   // clang-format off
+
+  /// all facilities must have at least one input commodity
   #pragma cyclus var { \
     "tooltip": "input commodities", \
     "doc": "commodities that the sink facility accepts", \

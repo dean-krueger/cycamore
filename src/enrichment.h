@@ -110,7 +110,7 @@ class NatUConverter : public cyclus::Converter<cyclus::Material> {
 /// the maximum quantity allowed by its SWU constraint or natural
 /// uranium inventory, whichever is lower. If multiple output
 /// commodities with different enrichment levels are requested and
-/// the facility does not have capacity to meet all requests, the
+/// the facility does not have SWU or capacity to meet all requests, the
 /// requests are fully, then partially filled in unspecified but
 /// repeatable order. A request for the product commodity without an
 /// associated requested enriched recipe will not be fulfilled.

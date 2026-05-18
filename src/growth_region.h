@@ -60,7 +60,6 @@ class GrowthRegion : public cyclus::Region, public cyclus::toolkit::Position {
   /// to determine if there exists some demand. If demand for a
   /// commodity exists, then the correct build order for that demand
   /// is constructed and executed.
-  /// @param time is the time to perform the tick
   virtual void Tick();
 
   /// enter the simulation and register any children present

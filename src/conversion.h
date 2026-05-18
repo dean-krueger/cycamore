@@ -30,7 +30,7 @@ class Conversion : public cyclus::Facility, public cyclus::toolkit::Position {
 
   virtual std::string version() { return CYCAMORE_VERSION; }
 
-// clanag-format off
+// clang-format off
 #pragma cyclus note { \
     "doc": \
     " A conversion facility that accepts materials and products and with a \n"\
