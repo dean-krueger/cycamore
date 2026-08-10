@@ -6,7 +6,7 @@ Since last release
 ======================
 
 **Added:**
-* Added TariffRegion Region (#661)
+* Added TariffRegion archetype (#661)
 * Added tests for Conversion Facility (#658)
 * Added Conversion Facility (#657)
 * Replaced manual matl_buy/sell_policy code in storage with code injection (#639)
