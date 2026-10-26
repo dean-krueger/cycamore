@@ -13,8 +13,7 @@ Source::Source(cyclus::Context* ctx)
       throughput(std::numeric_limits<double>::max()),
       package(cyclus::Package::unpackaged_name()),
       transport_unit(cyclus::TransportUnit::unrestricted_name()),
-      incremental_production(false),
-      total_material_created(0.0) {}
+      incremental_production(false) {}
 
 Source::~Source() {}
 
@@ -79,13 +78,13 @@ void Source::Build(cyclus::Agent* parent) {
 }
 
 void Source::Tick() {
-  if (incremental_production) {
+  if (incremental_production && inventory_size > 0) {
     // create material equal to throughput so long as total amount created 
     // doesn't exceed inventory_size and place it in the buf
     double qty_to_create =
-          std::min(throughput, inventory_size - total_material_created);
+          std::min(throughput, inventory_size);
     CreateInventory(qty_to_create);
-    total_material_created += qty_to_create;
+    inventory_size -= qty_to_create;
   }
 }
 

@@ -166,9 +166,6 @@ class Source : public cyclus::Facility,
     "tooltip":"Material buffer"}
   cyclus::toolkit::ResBuf<cyclus::Material> inventory;
 
-  #pragma cyclus var {"default": 0.0, "internal": True}
-  double total_material_created;
-
   void SetPackage();
 };
 
