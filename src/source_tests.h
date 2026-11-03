@@ -20,7 +20,7 @@ class SourceTest : public ::testing::Test {
   TestFacility* trader;
   cycamore::Source* src_facility;
   std::string commod, recipe_name, package_name, tu_name;
-  double capacity;
+  double capacity, cost;
   cyclus::Composition::Ptr recipe;
   cyclus::Package::Ptr package;
   cyclus::TransportUnit::Ptr tu;
@@ -41,6 +41,21 @@ class SourceTest : public ::testing::Test {
     s->outcommod = commod;
   }
   void throughput(cycamore::Source* s, double val) { s->throughput = val; }
+
+  // NOTE: The getter/setter names are a bit confusing here, but sometimes
+  // it's `get_xyz` instead of just `xyz` because of conflicts with the actual
+  // variable name in the cycpp.h file.
+  void unit_cost(cycamore::Source* s, double val) {
+    s->set_unit_cost(val); 
+  }
+
+  double unit_cost(cycamore::Source* s) {
+    return s->get_unit_cost(); 
+  }
+
+  void unit_cost_mod(cycamore::Source* s, double val) {
+    s->set_unit_cost_mod(val); 
+  }
 
   boost::shared_ptr<cyclus::ExchangeContext<cyclus::Material> > GetContext(
       int nreqs, std::string commodity);
